@@ -5,7 +5,7 @@
 Chemability is a POSIX script that scans other POSIX and non-POSIX scripts containing commented identifiers with required and optional commands/builtins.
 Note that builtins checks will only work on Bash builtins.
 
-![overview](README/overview.mp4)
+[![overview](README/overview.mp4)](https://github.com/user-attachments/assets/cbe05dc7-f7ef-432b-ad94-7c42fa04014e)
 
 ## Usage
 
