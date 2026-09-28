@@ -1,0 +1,348 @@
+#!/bin/sh
+
+# SPDX-License-Identifier: MIT
+
+set -eu
+
+
+# whether to use colors or not
+if [ "${CLICOLOR_FORCE:-}" = 1 ] || { [ "${CLICOLOR:-}" = 1 ] && [ -t 1 ]; }; then
+    RESET="$(printf '\033[0m')"; BOLD="$(printf '\033[1m')"; RED="$(printf '\033[31m')"; GREEN="$(printf '\033[32m')"; YELLOW="$(printf '\033[33m')"; BLUE="$(printf '\033[34m')"; MAGENTA="$(printf '\033[35m')"; CYAN="$(printf '\033[36m')"; GRAY="$(printf '\033[37m')"
+else
+    RESET=""; BOLD=""; RED=""; GREEN=""; YELLOW=""; BLUE=""; MAGENTA=""; CYAN=""; GRAY=""
+fi
+
+
+# not continue if the user is root
+[ -z "${USER:-}" ] && USER="$(id -run 2>/dev/null)" || [ -z "${USER:-}" ] && { printf 'Unable to obtained variable %bUSER%b.\n' "$CYAN" "$RESET" >&2; exit 1; }
+[ "$USER" = "root" ] && { printf 'Do %bNOT%b run this script as root.\n' "$RED" "$RESET" >&2; exit 1; }
+
+
+name="${0##*/}"
+filepath=0
+check_builtins=0
+directory=0
+recursive=0
+pattern=""
+
+# used for whather to insert new line or not to separate each scan
+not_first=0
+last_failed=0
+
+
+_help() {
+    printf '%s\n' \
+        "${BOLD}${RED}Usage:${RESET}" \
+        "    ${GREEN}${name}${RESET} ${YELLOW}[options]${RESET}" \
+        "" \
+        "${BOLD}${RED}Options:${RESET}" \
+        "    ${GREEN}-h${RESET}             Displays this help message" \
+        "    ${GREEN}-r${RESET}             Whather to scan directories recursively" \
+        "    ${GREEN}-i${RESET}  ${YELLOW}<pattern>${RESET}  Ignore scanning a file/directory that matches the pattern"
+}
+
+
+_trim() {
+    value="$1"
+
+    while [ "${value#[ 	]}" != "$value" ]; do value="${value#[ 	]}"; done
+    while [ "${value%[ 	]}" != "$value" ]; do value="${value%[ 	]}"; done
+
+    printf '%s' "$value"
+}
+
+
+_check_file() {
+    file="$1"
+
+    while read -r line; do
+        read -r keyword binaries << EOF
+$line
+EOF
+        case "$keyword" in
+            "#CHEMA_REQ")
+                if [ -n "$binaries" ]; then
+                    if [ "$not_first" = 1 ]; then
+                        printf '\n'
+                        not_first=0
+                    fi
+
+                    if [ "$last_failed" = 1 ] && [ "$not_first" = 1 ]; then
+                        printf '\n'
+                    fi
+
+                    last_failed=0
+
+                    if [ "$filepath" = 0 ]; then
+                        printf '%b%s%b\n' "$BOLD" "$file" "$RESET"
+                        filepath=1
+                    fi
+
+                    IFS=','
+                    for binary in $binaries; do
+                        IFS=';'
+                        read -r binary comment << EOF
+$binary
+EOF
+                        binary=$(_trim "$binary")
+                        comment=$(_trim "$comment")
+                        if command -v "$binary" >/dev/null 2>/dev/null; then
+                            if [ -n "${comment:-}" ]; then
+                                printf '%bRequired%b %b%s%b command is %bavailable%b, %b%s%b.\n' "$YELLOW" "$RESET" "$MAGENTA" "$binary" "$RESET" "$GREEN" "$RESET" "$BOLD" "$comment" "$RESET"
+                            else
+                                printf '%bRequired%b %b%s%b command is %bavailable%b.\n' "$YELLOW" "$RESET" "$MAGENTA" "$binary" "$RESET" "$GREEN" "$RESET"
+                            fi
+                        else
+                            if [ -n "${comment:-}" ]; then
+                                printf '%bRequired%b %b%s%b command is %bnot found%b, %b%s%b.\n' "$YELLOW" "$RESET" "$MAGENTA" "$binary" "$RESET" "$RED" "$RESET" "$BOLD" "$comment" "$RESET"
+                            else
+                                printf '%bRequired%b %b%s%b command is %bnot found%b.\n' "$YELLOW" "$RESET" "$MAGENTA" "$binary" "$RESET" "$RED" "$RESET"
+                            fi
+                        fi
+                    done
+                    unset IFS
+                fi
+            ;;
+            "#CHEMA_REQ_BLT")
+                if [ "$check_builtins" = 1 ]; then
+                    if [ -n "$binaries" ]; then
+
+                        if [ "$not_first" = 1 ]; then
+                            printf '\n'
+                            not_first=0
+                        fi
+
+                        if [ "$last_failed" = 1 ] && [ "$not_first" = 1 ]; then
+                            printf '\n'
+                        fi
+
+                        last_failed=0
+
+                        if [ "$filepath" = 0 ]; then
+                            printf '%b%s%b\n' "$BOLD" "$file" "$RESET"
+                            filepath=1
+                        fi
+
+                        IFS=','
+                        for binary in $binaries; do
+                            IFS=';'
+                            read -r binary comment << EOF
+$binary
+EOF
+                            binary=$(_trim "$binary")
+                            comment=$(_trim "$comment")
+                            if bash -c "enable $binary" 2>/dev/null; then
+                                if [ -n "${comment:-}" ]; then
+                                    printf '%bRequired%b %b%s%b builtin is %bavailable%b, %b%s%b.\n' "$YELLOW" "$RESET" "$GRAY" "$binary" "$RESET" "$GREEN" "$RESET" "$BOLD" "$comment" "$RESET"
+                                else
+                                    printf '%bRequired%b %b%s%b builtin is %bavailable%b.\n' "$YELLOW" "$RESET" "$GRAY" "$binary" "$RESET" "$GREEN" "$RESET"
+                                fi
+                            else
+                                if [ -n "${comment:-}" ]; then
+                                    printf '%bRequired%b %b%s%b builtin %bnot found%b, %b%s%b.\n' "$YELLOW" "$RESET" "$GRAY" "$binary" "$RESET" "$RED" "$RESET" "$BOLD" "$comment" "$RESET"
+                                else
+                                    printf '%bRequired%b %b%s%b builtin %bnot found%b.\n' "$YELLOW" "$RESET" "$GRAY" "$binary" "$RESET" "$RED" "$RESET"
+                                fi
+                            fi
+                        done
+                        unset IFS
+                    fi
+                else
+                    printf '%bSkipped%b  %brequired%b builtins.\n' "$BLUE" "$RESET" "$YELLOW" "$RESET"
+                fi
+            ;;
+            "#CHEMA_OPT")
+                if [ -n "$binaries" ]; then
+                    if [ "$not_first" = 1 ]; then
+                        printf '\n'
+                        not_first=0
+                    fi
+
+                    if [ "$last_failed" = 1 ] && [ "$not_first" = 1 ]; then
+                        printf '\n'
+                    fi
+
+                    last_failed=0
+
+                    if [ "$filepath" = 0 ]; then
+                        printf '%b%s%b\n' "$BOLD" "$file" "$RESET"
+                        filepath=1
+                    fi
+
+                    IFS=','
+                    for binary in $binaries; do
+                        IFS=';'
+                        read -r binary comment << EOF
+$binary
+EOF
+                        binary=$(_trim "$binary")
+                        comment=$(_trim "$comment")
+                        if command -v "$binary" >/dev/null 2>/dev/null; then
+                            if [ -n "${comment:-}" ]; then
+                                printf '%bOptional%b %b%s%b command is %bavailable%b, %b%s%b.\n' "$CYAN" "$RESET" "$MAGENTA" "$binary" "$RESET" "$GREEN" "$RESET" "$BOLD" "$comment" "$RESET"
+                            else
+                                printf '%bOptional%b %b%s%b command is %bavailable%b.\n' "$CYAN" "$RESET" "$MAGENTA" "$binary" "$RESET" "$GREEN" "$RESET"
+                            fi
+                        else
+                            if [ -n "${comment:-}" ]; then
+                                printf '%bOptional%b %b%s%b command %bnot found%b, %b%s%b.\n' "$CYAN" "$RESET" "$MAGENTA" "$binary" "$RESET" "$RED" "$RESET" "$BOLD" "$comment" "$RESET"
+                            else
+                                printf '%bOptional%b %b%s%b command %bnot found%b.\n' "$CYAN" "$RESET" "$MAGENTA" "$binary" "$RESET" "$RED" "$RESET"
+                            fi
+                        fi
+                    done
+                    unset IFS
+                fi
+            ;;
+            "#CHEMA_OPT_BLT")
+                if [ "$check_builtins" = 1 ]; then
+                    if [ -n "$binaries" ]; then
+                        if [ "$not_first" = 1 ]; then
+                            printf '\n'
+                            not_first=0
+                        fi
+
+                        if [ "$last_failed" = 1 ] && [ "$not_first" = 1 ]; then
+                            printf '\n'
+                        fi
+
+                        last_failed=0
+
+                        if [ "$filepath" = 0 ]; then
+                            printf '%b%s%b\n' "$BOLD" "$file" "$RESET"
+                            filepath=1
+                        fi
+
+                        IFS=','
+                        for binary in $binaries; do
+                            IFS=';'
+                            read -r binary comment << EOF
+$binary
+EOF
+                            binary=$(_trim "$binary")
+                            comment=$(_trim "$comment")
+                            if bash -c "enable $binary" 2>/dev/null; then
+                                if [ -n "${comment:-}" ]; then
+                                    printf '%bOptional%b %b%s%b builtin is %bavailable%b, %b%s%b.\n' "$CYAN" "$RESET" "$GRAY" "$binary" "$RESET" "$GREEN" "$RESET" "$BOLD" "$comment" "$RESET"
+                                else
+                                    printf '%bOptional%b %b%s%b builtin is %bavailable%b.\n' "$CYAN" "$RESET" "$GRAY" "$binary" "$RESET" "$GREEN" "$RESET"
+                                fi
+                            else
+                                if [ -n "${comment:-}" ]; then
+                                    printf '%bOptional%b %b%s%b builtin %bnot found%b, %b%s%b.\n' "$CYAN" "$RESET" "$GRAY" "$binary" "$RESET" "$RED" "$RESET" "$BOLD" "$comment" "$RESET"
+                                else
+                                    printf '%bOptional%b %b%s%b builtin %bnot found%b.\n' "$CYAN" "$RESET" "$GRAY" "$binary" "$RESET" "$RED" "$RESET"
+                                fi
+                            fi
+                        done
+                        unset IFS
+                    fi
+                else
+                    printf '%bSkipped%b  %boptional%b builtins.\n' "$BLUE" "$RESET" "$CYAN" "$RESET"
+                fi
+            ;;
+            "#CHEMA_END")
+                break
+            ;;
+            *)
+                continue
+            ;;
+        esac
+    done < "$file"
+
+    filepath=0
+    not_first=1
+}
+
+
+_check_files() {
+    for path in "$@"; do
+        case "$path" in
+            $pattern) # skips recognized pattern via case pattern registration
+            ;;
+            *)
+                if [ -f "$path" ]; then
+                    _check_file "$path"
+                elif [ -d "$path" ] && { [ "$directory" = 1 ] || [ "$recursive" = 1 ]; }; then # only scan directories if recursive or given
+                    # check if directory have at least one file
+
+                    for test in "$path"/*; do
+                        if [ -e "$test" ]; then
+                            directory=0 _check_files "${path%/*}"/*
+                            break
+                        elif [ "$recursive" != 1 ]; then
+                            if [ "$not_first" = 1 ] && [ "$last_failed" = 0 ]; then
+                                printf '\n'
+                            fi
+
+                            printf '%b%s%b directory does not have any %bfile%b to scan.\n' "$RED" "$path" "$RESET" "$BOLD" "$RESET"
+
+                            last_failed=1
+                            not_first=1
+                            break
+                        fi
+                    done
+                elif [ -d "$path" ]; then
+                    continue
+                else
+                    printf 'Cannot scan %b%s%b.\n' "$RED" "$path" "$RESET" >&2
+                fi
+            ;;
+        esac
+    done
+}
+
+
+while getopts ':hri:' arg; do
+    case "$arg" in
+        "h")
+            _help
+            exit 0
+        ;;
+        "r")
+            recursive=1
+        ;;
+        "i")
+            pattern="$OPTARG"
+        ;;
+        "?")
+            printf 'Known option %b-%s%b.\n' "$RED" "$OPTARG" "$RESET" >&2
+            exit 1
+        ;;
+        ":")
+            case "$OPTARG" in
+                *)
+                    printf 'Missing argument for %b-%s%b.\n' "$RED" "$OPTARG" "$RESET" >&2
+                    exit 1
+                ;;
+            esac
+        ;;
+    esac
+done
+
+shift $((OPTIND - 1))
+
+
+# check if Bash is available or not to check for Bash builtins
+if command -v bash >/dev/null 2>/dev/null; then
+    check_builtins=1
+else
+    printf '%bBash%b %bnot found%b. %bBuiltins check disabled%b.\n' "$MAGENTA" "$RESET" "$RED" "$RESET" "$BLUE" "$RESET" >&2
+fi
+
+
+# check whather to scan given argument/s or current directory
+if [ "$#" -ne 0 ]; then
+    directory=1 _check_files "$@"
+else
+    # check if directory have at least one file
+    for test in *; do
+        if [ -e "$test" ] || [ -L "$test" ]; then
+            _check_files ./*
+            break
+        else
+            printf 'Current directory does not have any %bfile%b to scan.\n' "$BOLD" "$RESET"
+            break
+        fi
+    done
+fi
