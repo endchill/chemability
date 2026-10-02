@@ -26,6 +26,7 @@ recursive=0
 pattern=""
 
 # used for whather to insert new line or not to separate each scan
+identifier_found=0
 not_first=0
 last_failed=0
 
@@ -62,6 +63,8 @@ EOF
         case "$keyword" in
             "#CHEMA_REQ")
                 if [ -n "$binaries" ]; then
+                    identifier_found=1
+
                     if [ "$not_first" = 1 ]; then
                         printf '\n'
                         not_first=0
@@ -106,6 +109,7 @@ EOF
             "#CHEMA_REQ_BLT")
                 if [ "$check_builtins" = 1 ]; then
                     if [ -n "$binaries" ]; then
+                        identifier_found=1
 
                         if [ "$not_first" = 1 ]; then
                             printf '\n'
@@ -153,6 +157,8 @@ EOF
             ;;
             "#CHEMA_OPT")
                 if [ -n "$binaries" ]; then
+                    identifier_found=1
+
                     if [ "$not_first" = 1 ]; then
                         printf '\n'
                         not_first=0
@@ -197,6 +203,8 @@ EOF
             "#CHEMA_OPT_BLT")
                 if [ "$check_builtins" = 1 ]; then
                     if [ -n "$binaries" ]; then
+                        identifier_found=1
+
                         if [ "$not_first" = 1 ]; then
                             printf '\n'
                             not_first=0
@@ -250,8 +258,10 @@ EOF
         esac
     done < "$file"
 
-    filepath=0
-    not_first=1
+    if [[ "$identifier_found" = 1 ]]; then
+        filepath=0
+        not_first=1
+    fi
 }
 
 
