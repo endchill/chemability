@@ -10,7 +10,7 @@ Note that builtins checks will only work on Bash builtins.
 ## Usage
 
 By default if Chemability ran without arguments it will scan scripts in the current directory, Chemability can take files and directories as arguments and options `-r` for recursive scanning and `-i` for ignore pattern.
-Pattern registration is limited, only simple patterns like '*.bak' will work, make sure to quote it.
+Pattern recognition is limited, only simple patterns like '*.bak' will work, make sure to quote it.
 
 
 ## Enabling colors

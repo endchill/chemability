@@ -269,7 +269,7 @@ EOF
 _check_files() {
     for path in "$@"; do
         case "$path" in
-            $pattern) # skips recognized pattern via case pattern registration
+            $pattern) # skips recognized pattern via case pattern recognition
             ;;
             *)
                 if [ -f "$path"  ]; then
