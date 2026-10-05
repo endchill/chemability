@@ -258,7 +258,7 @@ EOF
         esac
     done < "$file"
 
-    if [[ "$identifier_found" = 1 ]]; then
+    if [ "$identifier_found" = 1 ]; then
         filepath=0
         not_first=1
     fi
