@@ -272,8 +272,20 @@ _check_files() {
             $pattern) # skips recognized pattern via case pattern registration
             ;;
             *)
-                if [ -f "$path" ]; then
-                    _check_file "$path"
+                if [ -f "$path"  ]; then
+                    if [ -r "$path" ]; then
+                        _check_file "$path"
+                    else
+                        if [ "$not_first" = 1 ] && [ "$last_failed" = 0 ]; then
+                            printf '\n'
+                        fi
+
+                        printf 'Cannot read file %b%s%b: permission denied.\n' "$BOLD" "$path" "$RESET" >&2
+
+                        last_failed=1
+                        not_first=1
+                        continue
+                    fi
                 elif [ -d "$path" ] && { [ "$directory" = 1 ] || [ "$recursive" = 1 ]; }; then # only scan directories if recursive or given
                     # check if directory have at least one file
 
