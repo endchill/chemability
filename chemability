@@ -136,7 +136,7 @@ $binary
 EOF
                             binary=$(_trim "$binary")
                             comment=$(_trim "$comment")
-                            if bash -c "enable $binary" 2>/dev/null; then
+                            if bash -c 'enable "$1"' bash "$binary" 2>/dev/null; then
                                 if [ -n "${comment:-}" ]; then
                                     printf '%bRequired%b %b%s%b builtin is %bavailable%b, %b%s%b.\n' "$YELLOW" "$RESET" "$GRAY" "$binary" "$RESET" "$GREEN" "$RESET" "$BOLD" "$comment" "$RESET"
                                 else
@@ -230,7 +230,7 @@ $binary
 EOF
                             binary=$(_trim "$binary")
                             comment=$(_trim "$comment")
-                            if bash -c "enable $binary" 2>/dev/null; then
+                            if bash -c 'enable "$1"' bash "$binary" 2>/dev/null; then
                                 if [ -n "${comment:-}" ]; then
                                     printf '%bOptional%b %b%s%b builtin is %bavailable%b, %b%s%b.\n' "$CYAN" "$RESET" "$GRAY" "$binary" "$RESET" "$GREEN" "$RESET" "$BOLD" "$comment" "$RESET"
                                 else
