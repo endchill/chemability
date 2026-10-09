@@ -7,9 +7,25 @@ set -eu
 
 # whether to use colors or not
 if [ "${CLICOLOR_FORCE:-}" = 1 ] || { [ "${CLICOLOR:-}" = 1 ] && [ -t 1 ]; }; then
-    RESET="$(printf '\033[0m')"; BOLD="$(printf '\033[1m')"; RED="$(printf '\033[31m')"; GREEN="$(printf '\033[32m')"; YELLOW="$(printf '\033[33m')"; BLUE="$(printf '\033[34m')"; MAGENTA="$(printf '\033[35m')"; CYAN="$(printf '\033[36m')"; GRAY="$(printf '\033[37m')"
+    RESET="$(printf '\033[0m')"
+    BOLD="$(printf '\033[1m')"
+    RED="$(printf '\033[31m')"
+    GREEN="$(printf '\033[32m')"
+    YELLOW="$(printf '\033[33m')"
+    BLUE="$(printf '\033[34m')"
+    MAGENTA="$(printf '\033[35m')"
+    CYAN="$(printf '\033[36m')"
+    GRAY="$(printf '\033[37m')"
 else
-    RESET=""; BOLD=""; RED=""; GREEN=""; YELLOW=""; BLUE=""; MAGENTA=""; CYAN=""; GRAY=""
+    RESET=""
+    BOLD=""
+    RED=""
+    GREEN=""
+    YELLOW=""
+    BLUE=""
+    MAGENTA=""
+    CYAN=""
+    GRAY=""
 fi
 
 
@@ -153,7 +169,7 @@ EOF
                         unset IFS
                     fi
                 else
-                    printf '%bSkipped%b  %brequired%b builtins.\n' "$BLUE" "$RESET" "$YELLOW" "$RESET"
+                    printf '%bSkipped%b  %b%s%b %brequired%b builtins.\n' "$BLUE" "$RESET" "$GRAY" "$binary" "$RESET" "$YELLOW" "$RESET"
                 fi
             ;;
             "#CHEMA_OPT")
@@ -247,7 +263,7 @@ EOF
                         unset IFS
                     fi
                 else
-                    printf '%bSkipped%b  %boptional%b builtins.\n' "$BLUE" "$RESET" "$CYAN" "$RESET"
+                    printf '%bSkipped%b  %b%s%b %boptional%b builtins.\n' "$BLUE" "$RESET" "$GRAY" "$binary" "$RESET" "$CYAN" "$RESET"
                 fi
             ;;
             "#CHEMA_END")
@@ -347,10 +363,11 @@ shift $((OPTIND - 1))
 
 
 # check if Bash is available or not to check for Bash builtins
-if command -v bash >/dev/null 2>/dev/null; then
+if command -v badsh >/dev/null 2>/dev/null; then
     check_builtins=1
 else
-    printf '%bBash%b %bnot found%b. %bBuiltins check disabled%b.\n' "$MAGENTA" "$RESET" "$RED" "$RESET" "$BLUE" "$RESET" >&2
+    not_first=1
+    printf '%bBash%b %bnot found%b, %bBuiltins check disabled%b.\n' "$MAGENTA" "$RESET" "$BOLD" "$RESET" "$BLUE" "$RESET" >&2
 fi
 
 
