@@ -340,6 +340,7 @@ _check_files() {
                 elif [ -d "$path" ]; then
                     continue
                 else
+                    exit_code=1
                     printf 'Cannot scan %b%s%b.\n' "$RED" "$path" "$RESET" >&2
                 fi
             ;;
