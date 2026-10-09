@@ -91,20 +91,16 @@ EOF
                 if [ -n "$binaries" ]; then
                     identifier_found=1
 
-                    if [ "$not_first" = 1 ]; then
-                        printf '\n'
+                    if [ "$last_failed" = 1 ] || [ "$not_first" = 1 ]; then
                         not_first=0
-                    fi
-
-                    if [ "$last_failed" = 1 ] && [ "$not_first" = 1 ]; then
                         printf '\n'
                     fi
 
                     last_failed=0
 
                     if [ "$filepath" = 0 ]; then
-                        printf '%b%s%b\n' "$BOLD" "$file" "$RESET"
                         filepath=1
+                        printf '%b%s%b\n' "$BOLD" "$file" "$RESET"
                     fi
 
                     IFS=','
@@ -138,20 +134,16 @@ EOF
                 if [ -n "$binaries" ]; then
                     identifier_found=1
 
-                    if [ "$not_first" = 1 ]; then
-                        printf '\n'
+                    if [ "$last_failed" = 1 ] || [ "$not_first" = 1 ]; then
                         not_first=0
-                    fi
-
-                    if [ "$last_failed" = 1 ] && [ "$not_first" = 1 ]; then
                         printf '\n'
                     fi
 
                     last_failed=0
 
                     if [ "$filepath" = 0 ]; then
-                        printf '%b%s%b\n' "$BOLD" "$file" "$RESET"
                         filepath=1
+                        printf '%b%s%b\n' "$BOLD" "$file" "$RESET"
                     fi
 
                     IFS=','
@@ -193,20 +185,16 @@ EOF
                 if [ -n "$binaries" ]; then
                     identifier_found=1
 
-                    if [ "$not_first" = 1 ]; then
-                        printf '\n'
+                    if [ "$last_failed" = 1 ] || [ "$not_first" = 1 ]; then
                         not_first=0
-                    fi
-
-                    if [ "$last_failed" = 1 ] && [ "$not_first" = 1 ]; then
                         printf '\n'
                     fi
 
                     last_failed=0
 
                     if [ "$filepath" = 0 ]; then
-                        printf '%b%s%b\n' "$BOLD" "$file" "$RESET"
                         filepath=1
+                        printf '%b%s%b\n' "$BOLD" "$file" "$RESET"
                     fi
 
                     IFS=','
@@ -242,20 +230,16 @@ EOF
                 if [ -n "$binaries" ]; then
                     identifier_found=1
 
-                    if [ "$not_first" = 1 ]; then
-                        printf '\n'
+                    if [ "$last_failed" = 1 ] || [ "$not_first" = 1 ]; then
                         not_first=0
-                    fi
-
-                    if [ "$last_failed" = 1 ] && [ "$not_first" = 1 ]; then
                         printf '\n'
                     fi
 
                     last_failed=0
 
                     if [ "$filepath" = 0 ]; then
-                        printf '%b%s%b\n' "$BOLD" "$file" "$RESET"
                         filepath=1
+                        printf '%b%s%b\n' "$BOLD" "$file" "$RESET"
                     fi
 
                     IFS=','
