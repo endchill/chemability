@@ -307,7 +307,7 @@ _check_files() {
 
                     for test in "$path"/*; do
                         if [ -e "$test" ]; then
-                            directory=0 _check_files "$path"/*
+                            directory=0 _check_files "${path%*/}"/*
                             break
                         elif [ "$recursive" != 1 ]; then
                             if [ "$not_first" = 1 ] && [ "$last_failed" = 0 ]; then
