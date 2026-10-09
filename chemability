@@ -30,7 +30,7 @@ fi
 
 
 # not continue if the user is root
-if [ "${CHEMABILITY_NO_ROOT_CKECK:-}" != 1 ]; then
+if [ "${CHEMABILITY_NO_ROOT_CHECK:-}" != 1 ]; then
     [  -z "${USER:-}"  ] && USER="$(id -run 2>/dev/null)"
     [  -z "${USER:-}"  ] && { printf 'Unable to obtained variable %bUSER%b.\n' "$CYAN" "$RESET" >&2; exit 1; }
     [ "$USER" = "root" ] && { printf 'Do %bNOT%b run this script as root.\n' "$RED" "$RESET" >&2; exit 1; }
@@ -291,6 +291,7 @@ EOF
     if [ "$identifier_found" = 1 ]; then
         filepath=0
         not_first=1
+        identifier_found=0
     fi
 }
 
