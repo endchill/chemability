@@ -347,7 +347,7 @@ while getopts ':hri:' arg; do
             pattern="$OPTARG"
         ;;
         "?")
-            printf 'Known option %b-%s%b.\n' "$RED" "$OPTARG" "$RESET" >&2
+            printf 'Unknown option %b-%s%b.\n' "$RED" "$OPTARG" "$RESET" >&2
             exit 1
         ;;
         ":")
