@@ -62,9 +62,9 @@ _help() {
         "" \
         "${BOLD}${RED}Options:${RESET}" \
         "    ${GREEN}-h${RESET}             Displays this help message" \
-        "    ${GREEN}-r${RESET}             Whather to scan directories recursively" \
-        "    ${GREEN}-s${RESET}             Whather to skip optional" \
-        "    ${GREEN}-f${RESET}             Whather to fail when optional is unavailable" \
+        "    ${GREEN}-r${RESET}             Whether to scan directories recursively" \
+        "    ${GREEN}-s${RESET}             Whether to skip optional" \
+        "    ${GREEN}-f${RESET}             Whether to fail when optional is unavailable" \
         "    ${GREEN}-i${RESET}  ${YELLOW}<pattern>${RESET}  Ignore scanning a file/directory that matches the pattern"
 }
 
