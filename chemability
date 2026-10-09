@@ -38,11 +38,15 @@ fi
 
 
 name="${0##*/}"
-filepath=0
+is_failed=0
 check_builtins=0
+fail_on_optional=0
 directory=0
 recursive=0
 pattern=""
+
+# used for whather to output filepath
+filepath=0
 
 # used for whather to insert new line or not to separate each scan
 identifier_found=0
@@ -58,6 +62,7 @@ _help() {
         "${BOLD}${RED}Options:${RESET}" \
         "    ${GREEN}-h${RESET}             Displays this help message" \
         "    ${GREEN}-r${RESET}             Whather to scan directories recursively" \
+        "    ${GREEN}-f${RESET}             Whather to fail when optional is unavailable" \
         "    ${GREEN}-i${RESET}  ${YELLOW}<pattern>${RESET}  Ignore scanning a file/directory that matches the pattern"
 }
 
@@ -116,8 +121,10 @@ EOF
                             fi
                         else
                             if [ -n "${comment:-}" ]; then
+                                is_failed=1
                                 printf '%bRequired%b %b%s%b command is %bnot found%b, %b%s%b.\n' "$YELLOW" "$RESET" "$MAGENTA" "$binary" "$RESET" "$RED" "$RESET" "$BOLD" "$comment" "$RESET"
                             else
+                                is_failed=1
                                 printf '%bRequired%b %b%s%b command is %bnot found%b.\n' "$YELLOW" "$RESET" "$MAGENTA" "$binary" "$RESET" "$RED" "$RESET"
                             fi
                         fi
@@ -162,8 +169,10 @@ EOF
                                 fi
                             else
                                 if [ -n "${comment:-}" ]; then
+                                    is_failed=1
                                     printf '%bRequired%b %b%s%b builtin %bnot found%b, %b%s%b.\n' "$YELLOW" "$RESET" "$GRAY" "$binary" "$RESET" "$RED" "$RESET" "$BOLD" "$comment" "$RESET"
                                 else
+                                    is_failed=1
                                     printf '%bRequired%b %b%s%b builtin %bnot found%b.\n' "$YELLOW" "$RESET" "$GRAY" "$binary" "$RESET" "$RED" "$RESET"
                                 fi
                             fi
@@ -210,8 +219,10 @@ EOF
                             fi
                         else
                             if [ -n "${comment:-}" ]; then
+                                [ "$fail_on_optional" = 1 ] && is_failed=1
                                 printf '%bOptional%b %b%s%b command %bnot found%b, %b%s%b.\n' "$CYAN" "$RESET" "$MAGENTA" "$binary" "$RESET" "$RED" "$RESET" "$BOLD" "$comment" "$RESET"
                             else
+                                [ "$fail_on_optional" = 1 ] && is_failed=1
                                 printf '%bOptional%b %b%s%b command %bnot found%b.\n' "$CYAN" "$RESET" "$MAGENTA" "$binary" "$RESET" "$RED" "$RESET"
                             fi
                         fi
@@ -256,8 +267,10 @@ EOF
                                 fi
                             else
                                 if [ -n "${comment:-}" ]; then
+                                    [ "$fail_on_optional" = 1 ] && is_failed=1
                                     printf '%bOptional%b %b%s%b builtin %bnot found%b, %b%s%b.\n' "$CYAN" "$RESET" "$GRAY" "$binary" "$RESET" "$RED" "$RESET" "$BOLD" "$comment" "$RESET"
                                 else
+                                    [ "$fail_on_optional" = 1 ] && is_failed=1
                                     printf '%bOptional%b %b%s%b builtin %bnot found%b.\n' "$CYAN" "$RESET" "$GRAY" "$binary" "$RESET" "$RED" "$RESET"
                                 fi
                             fi
@@ -334,7 +347,7 @@ _check_files() {
 }
 
 
-while getopts ':hri:' arg; do
+while getopts ':hrfi:' arg; do
     case "$arg" in
         "h")
             _help
@@ -342,6 +355,9 @@ while getopts ':hri:' arg; do
         ;;
         "r")
             recursive=1
+        ;;
+        "f")
+            fail_on_optional=1
         ;;
         "i")
             pattern="$OPTARG"
@@ -388,3 +404,5 @@ else
         fi
     done
 fi
+
+exit "$is_failed"
