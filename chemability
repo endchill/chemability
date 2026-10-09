@@ -30,9 +30,11 @@ fi
 
 
 # not continue if the user is root
-[  -z "${USER:-}"  ] && USER="$(id -run 2>/dev/null)"
-[  -z "${USER:-}"  ] && { printf 'Unable to obtained variable %bUSER%b.\n' "$CYAN" "$RESET" >&2; exit 1; }
-[ "$USER" = "root" ] && { printf 'Do %bNOT%b run this script as root.\n' "$RED" "$RESET" >&2; exit 1; }
+if [ "${CHEMABILITY_NO_ROOT_CKECK:-}" = 1 ]; then
+    [  -z "${USER:-}"  ] && USER="$(id -run 2>/dev/null)"
+    [  -z "${USER:-}"  ] && { printf 'Unable to obtained variable %bUSER%b.\n' "$CYAN" "$RESET" >&2; exit 1; }
+    [ "$USER" = "root" ] && { printf 'Do %bNOT%b run this script as root.\n' "$RED" "$RESET" >&2; exit 1; }
+fi
 
 
 name="${0##*/}"

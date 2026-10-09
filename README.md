@@ -20,6 +20,8 @@ Colors can be enabled using environment variables:
 * Set `CLICOLOR` to `1` to enable auto-detecting color support.
 * Set `CLICOLOR_FORCE` to `1` to always force color output.
 
+* Set `CHEMABILITY_NO_ROOT_CKECK` to `1` to skip root check.
+
 ## How it works
 
 ```bash
