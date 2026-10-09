@@ -30,7 +30,7 @@ fi
 
 
 # not continue if the user is root
-if [ "${CHEMABILITY_NO_ROOT_CKECK:-}" = 1 ]; then
+if [ "${CHEMABILITY_NO_ROOT_CKECK:-}" != 1 ]; then
     [  -z "${USER:-}"  ] && USER="$(id -run 2>/dev/null)"
     [  -z "${USER:-}"  ] && { printf 'Unable to obtained variable %bUSER%b.\n' "$CYAN" "$RESET" >&2; exit 1; }
     [ "$USER" = "root" ] && { printf 'Do %bNOT%b run this script as root.\n' "$RED" "$RESET" >&2; exit 1; }
@@ -38,7 +38,7 @@ fi
 
 
 name="${0##*/}"
-is_failed=0
+exit_code=0
 check_builtins=0
 fail_on_optional=0
 directory=0
@@ -121,10 +121,10 @@ EOF
                             fi
                         else
                             if [ -n "${comment:-}" ]; then
-                                is_failed=1
+                                exit_code=1
                                 printf '%bRequired%b %b%s%b command is %bnot found%b, %b%s%b.\n' "$YELLOW" "$RESET" "$MAGENTA" "$binary" "$RESET" "$RED" "$RESET" "$BOLD" "$comment" "$RESET"
                             else
-                                is_failed=1
+                                exit_code=1
                                 printf '%bRequired%b %b%s%b command is %bnot found%b.\n' "$YELLOW" "$RESET" "$MAGENTA" "$binary" "$RESET" "$RED" "$RESET"
                             fi
                         fi
@@ -169,10 +169,10 @@ EOF
                                 fi
                             else
                                 if [ -n "${comment:-}" ]; then
-                                    is_failed=1
+                                    exit_code=1
                                     printf '%bRequired%b %b%s%b builtin %bnot found%b, %b%s%b.\n' "$YELLOW" "$RESET" "$GRAY" "$binary" "$RESET" "$RED" "$RESET" "$BOLD" "$comment" "$RESET"
                                 else
-                                    is_failed=1
+                                    exit_code=1
                                     printf '%bRequired%b %b%s%b builtin %bnot found%b.\n' "$YELLOW" "$RESET" "$GRAY" "$binary" "$RESET" "$RED" "$RESET"
                                 fi
                             fi
@@ -219,10 +219,10 @@ EOF
                             fi
                         else
                             if [ -n "${comment:-}" ]; then
-                                [ "$fail_on_optional" = 1 ] && is_failed=1
+                                [ "$fail_on_optional" = 1 ] && exit_code=1
                                 printf '%bOptional%b %b%s%b command %bnot found%b, %b%s%b.\n' "$CYAN" "$RESET" "$MAGENTA" "$binary" "$RESET" "$RED" "$RESET" "$BOLD" "$comment" "$RESET"
                             else
-                                [ "$fail_on_optional" = 1 ] && is_failed=1
+                                [ "$fail_on_optional" = 1 ] && exit_code=1
                                 printf '%bOptional%b %b%s%b command %bnot found%b.\n' "$CYAN" "$RESET" "$MAGENTA" "$binary" "$RESET" "$RED" "$RESET"
                             fi
                         fi
@@ -267,10 +267,10 @@ EOF
                                 fi
                             else
                                 if [ -n "${comment:-}" ]; then
-                                    [ "$fail_on_optional" = 1 ] && is_failed=1
+                                    [ "$fail_on_optional" = 1 ] && exit_code=1
                                     printf '%bOptional%b %b%s%b builtin %bnot found%b, %b%s%b.\n' "$CYAN" "$RESET" "$GRAY" "$binary" "$RESET" "$RED" "$RESET" "$BOLD" "$comment" "$RESET"
                                 else
-                                    [ "$fail_on_optional" = 1 ] && is_failed=1
+                                    [ "$fail_on_optional" = 1 ] && exit_code=1
                                     printf '%bOptional%b %b%s%b builtin %bnot found%b.\n' "$CYAN" "$RESET" "$GRAY" "$binary" "$RESET" "$RED" "$RESET"
                                 fi
                             fi
@@ -405,4 +405,4 @@ else
     done
 fi
 
-exit "$is_failed"
+exit "$exit_code"
