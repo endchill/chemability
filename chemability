@@ -327,6 +327,7 @@ _check_files() {
 
                         printf 'Cannot read file %b%s%b: permission denied.\n' "$BOLD" "$path" "$RESET" >&2
 
+                        exit_code=1
                         last_failed=1
                         not_first=1
                         continue
@@ -345,6 +346,7 @@ _check_files() {
 
                             printf '%b%s%b directory does not have any %bfile%b to scan.\n' "$RED" "$path" "$RESET" "$BOLD" "$RESET"
 
+                            exit_code=1
                             last_failed=1
                             not_first=1
                             break
