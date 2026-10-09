@@ -13,14 +13,14 @@ By default if Chemability ran without arguments it will scan scripts in the curr
 Pattern recognition is limited, only simple patterns like '*.bak' will work, make sure to quote it.
 
 
-## Enabling colors
+## Environment variables
 
-Colors can be enabled using environment variables:
+Colors can be enabled by using environment variables:
 
 * Set `CLICOLOR` to `1` to enable auto-detecting color support.
 * Set `CLICOLOR_FORCE` to `1` to always force color output.
 
-* Set `CHEMABILITY_NO_ROOT_CKECK` to `1` to skip root check.
+Root check can be skipped by Setting `CHEMABILITY_NO_ROOT_CKECK` to `1` to skip root check.
 
 ## How it works
 
