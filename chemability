@@ -53,7 +53,7 @@ last_failed=0
 _help() {
     printf '%s\n' \
         "${BOLD}${RED}Usage:${RESET}" \
-        "    ${GREEN}${name}${RESET} ${YELLOW}[options]${RESET}" \
+        "    ${GREEN}${name}${RESET} ${YELLOW}[options] [arg]${RESET}" \
         "" \
         "${BOLD}${RED}Options:${RESET}" \
         "    ${GREEN}-h${RESET}             Displays this help message" \
