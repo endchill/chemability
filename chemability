@@ -31,9 +31,9 @@ fi
 
 # not continue if the user is root
 if [ "${CHEMABILITY_NO_ROOT_CHECK:-}" != 1 ]; then
-    [  -z "${USER:-}"  ] && USER="$(id -run 2>/dev/null)"
-    [  -z "${USER:-}"  ] && { printf 'Unable to obtained variable %bUSER%b.\n' "$CYAN" "$RESET" >&2; exit 1; }
-    [ "$USER" = "root" ] && { printf 'Do %bNOT%b run this script as root.\n' "$RED" "$RESET" >&2; exit 1; }
+    [ -z "${UID:-}" ] && UID="$(id -d 2>/dev/null | :)"
+    [ -z "${UID:-}" ] && { printf 'Unable to obtained variable %bUSER%b.\n' "$CYAN" "$RESET" >&2; exit 1; }
+    [  "$UID" = 0   ] && { printf 'Do %bNOT%b run this script as root.\n' "$RED" "$RESET" >&2; exit 1; }
 fi
 
 
@@ -390,7 +390,7 @@ if command -v bash >/dev/null 2>/dev/null; then
     check_builtins=1
 else
     not_first=1
-    printf '%bBash%b %bnot found%b, %bBuiltins check disabled%b.\n' "$MAGENTA" "$RESET" "$BOLD" "$RESET" "$BLUE" "$RESET" >&2
+    printf '%bBash%b %bnot found%b, %bBuiltins check disabled%b.\n' "$MAGENTA" "$RESET" "$BOLD" "$RESET" "$BLUE" "$RESET"
 fi
 
 
