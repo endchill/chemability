@@ -72,8 +72,11 @@ _help() {
 _trim() {
     value="$1"
 
-    while [ "${value#[ 	]}" != "$value" ]; do value="${value#[ 	]}"; done
-    while [ "${value%[ 	]}" != "$value" ]; do value="${value%[ 	]}"; done
+    tab="$(printf '\t')"
+    space="$(printf ' ')"
+
+    while [ "${value#["$space""$tab"]}" != "$value" ]; do value="${value#["$space""$tab"]}"; done
+    while [ "${value%["$space""$tab"]}" != "$value" ]; do value="${value%["$space""$tab"]}"; done
 
     printf '%s' "$value"
 }
