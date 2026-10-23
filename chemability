@@ -4,7 +4,6 @@
 
 set -eu
 
-
 # whether to use colors or not
 if [ "${CLICOLOR_FORCE:-}" = 1 ] || { [ "${CLICOLOR:-}" = 1 ] && [ -t 1 ]; }; then
     RESET="$(printf '\033[0m')"
@@ -42,6 +41,7 @@ exit_code=0
 check_builtins=0
 fail_on_optional=0
 skip_optional=0
+run_command=0
 directory=0
 recursive=0
 pattern=""
@@ -86,7 +86,7 @@ _check_file() {
     file="$1"
 
     while read -r line || [ -n "$line" ]; do
-        read -r keyword binaries << EOF
+        read -r keyword binaries <<- EOF
 $line
 EOF
         case "$keyword" in
@@ -112,8 +112,8 @@ EOF
                         read -r binary comment << EOF
 $binary
 EOF
-                        binary=$(_trim "$binary")
-                        comment=$(_trim "$comment")
+                        binary="$(_trim "$binary")"
+                        comment="$(_trim "$comment")"
                         if command -v "$binary" >/dev/null 2>/dev/null; then
                             if [ -n "${comment:-}" ]; then
                                 printf '%bRequired%b %b%s%b command is %bavailable%b, %b%s%b.\n' "$YELLOW" "$RESET" "$MAGENTA" "$binary" "$RESET" "$GREEN" "$RESET" "$BOLD" "$comment" "$RESET"
@@ -155,8 +155,8 @@ EOF
                         read -r binary comment << EOF
 $binary
 EOF
-                        binary=$(_trim "$binary")
-                        comment=$(_trim "$comment")
+                        binary="$(_trim "$binary")"
+                        comment="$(_trim "$comment")"
                         if [ "$check_builtins" = 1 ]; then
                             if bash -c 'enable "$1"' bash "$binary" 2>/dev/null; then
                                 if [ -n "${comment:-}" ]; then
@@ -206,8 +206,8 @@ EOF
                         read -r binary comment << EOF
 $binary
 EOF
-                        binary=$(_trim "$binary")
-                        comment=$(_trim "$comment")
+                        binary="$(_trim "$binary")"
+                        comment="$(_trim "$comment")"
                         if [ "$skip_optional" != 1 ]; then
                             if command -v "$binary" >/dev/null 2>/dev/null; then
                                 if [ -n "${comment:-}" ]; then
@@ -251,8 +251,8 @@ EOF
                         read -r binary comment << EOF
 $binary
 EOF
-                        binary=$(_trim "$binary")
-                        comment=$(_trim "$comment")
+                        binary="$(_trim "$binary")"
+                        comment="$(_trim "$comment")"
                         if [ "$skip_optional" != 1 ]; then
                             if [ "$check_builtins" = 1 ]; then
                                 if bash -c 'enable "$1"' bash "$binary" 2>/dev/null; then
@@ -285,6 +285,78 @@ EOF
             "#CHEMA_END")
                 break
             ;;
+            "#CHEMA_CMD_"*)
+                command_line="${keyword#"#CHEMA_CMD_"}"
+
+                IFS='_'
+                read -r command command_line << EOF
+$command_line
+EOF
+
+                if ! command -v "$command" >/dev/null 2>/dev/null; then
+                    unset IFS
+                    continue
+                fi
+
+                rest="$command_line"
+                command_line=""
+
+                while [ -n "$rest" ]; do
+                    token="${rest%%_*}"
+                    command_line="${command_line:-}${token} "
+
+                    case "$rest" in
+                        *_*) rest="${rest#*_}" ;;
+                        *)   rest="" ;;
+                    esac
+                done
+
+                command_line="${command_line% }"
+
+                printf '%bRunning%b command %b%s%b %b%s%b with arguments:\n' "$GREEN" "$RESET" "$MAGENTA" "$command" "$RESET" "$YELLOW" "$command_line" "$RESET"
+
+                if [ -n "$binaries" ]; then
+                    identifier_found=1
+
+                    if [ "$last_failed" = 1 ] || [ "$not_first" = 1 ]; then
+                        not_first=0
+                        printf '\n'
+                    fi
+
+                    last_failed=0
+
+                    if [ "$filepath" = 0 ]; then
+                        filepath=1
+                        printf '%b%s%b\n' "$BOLD" "$file" "$RESET"
+                    fi
+
+                    IFS=','
+                    for package in $binaries; do
+                        IFS=';'
+                        read -r package comment << EOF
+$package
+EOF
+
+                        package="$(_trim "$package")"
+                        comment="$(_trim "$comment")"
+
+                        arguments="${arguments:-}${package} "
+                        run_command=1
+
+                        if [ -n "${comment:-}" ]; then
+                            printf '\t%b%s%b, %b%s%b.\n' "$GREEN" "$package" "$RESET" "$BOLD" "$comment" "$RESET"
+                        else
+                            printf '\t%b%s%b.\n' "$GREEN" "$package" "$RESET"
+                        fi
+                    done
+                    unset IFS
+                fi
+
+                if [ "$run_command" = 1 ]; then
+                    # shellcheck disable=SC2086
+                    $command $command_line $arguments || :
+                fi
+            ;;
             *)
                 continue
             ;;
@@ -301,6 +373,7 @@ EOF
 
 _check_files() {
     for path in "$@"; do
+        # shellcheck disable=SC2254
         case "$path" in
             $pattern) # skips recognized pattern via case pattern recognition
             ;;
